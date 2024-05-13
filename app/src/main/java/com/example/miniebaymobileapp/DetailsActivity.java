@@ -149,7 +149,7 @@ public class DetailsActivity extends AppCompatActivity {
                     JSONArray departments = departmentsObj.getJSONArray("departments");
                     for (int i =0; i < departments.length(); i++){
                         JSONObject department = departments.getJSONObject(i);
-                        String departmentName = department.getString("dept_name");
+                        String departmentName = department.getString("Department Name");
                         departmentList.add(departmentName);
                     }
                 }catch (final JSONException e){
