@@ -35,6 +35,8 @@ import static android.content.Context.MODE_PRIVATE;
 public class DetailsActivity extends AppCompatActivity {
     SharedPreferences prf;
 
+    protected productClass productObject;
+
     private String TAG = DetailsActivity.class.getSimpleName();
     private ListView lv;
 
@@ -53,6 +55,8 @@ public class DetailsActivity extends AppCompatActivity {
         prf = getSharedPreferences("user_details", MODE_PRIVATE);
         result.setText("Hello, " + prf.getString("username", null) + " \n " + prf.getString("sessionValue", null));
 
+
+        //Server IP address and port
         hostAddress = "192.168.0.7:8080";
         itemUserList = new ArrayList<>();
         adapter = new UsersAdapter(this, itemUserList);
@@ -72,7 +76,12 @@ public class DetailsActivity extends AppCompatActivity {
                 Intent intent = new Intent(DetailsActivity.this, MainActivity.class);
                 startActivity(intent);
             }
-        });
+        }
+
+
+
+
+        );
     }
 
     private class GetItems extends AsyncTask<Void, Void, Void> {
@@ -108,16 +117,18 @@ public class DetailsActivity extends AppCompatActivity {
 
                     for (int i = 0; i < products.length(); i++) {
                         JSONObject product = products.getJSONObject(i);
+                        String productId = product.getString("Product ID");
                         String name = product.getString("Product Name");
                         double bid = product.getDouble("Bid");
                         String description = product.getString("Description");
                         String department = product.getString("Department");
+                        String dueDate = product.getString("Due-Date");
                         String seller = product.getString("Seller");
                         String imagePath = product.getString("Image");
                         String imageURL = "http://" + hostAddress + "/cpen410/imagesjson/" + imagePath;
 
                         Drawable image = LoadImageFromWebOperations(imageURL);
-                        itemUserList.add(new userItem(name, String.valueOf(bid), image));
+                        itemUserList.add(new userItem(productId, name, String.valueOf(bid), description, department, dueDate, seller, image));
                     }
                 } catch (final JSONException e) {
                     Log.e(TAG, "Json parsing error: " + e.getMessage());
@@ -215,6 +226,13 @@ public class DetailsActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(),
                             "You have selected " + itemUserList.get(position).name,
                             Toast.LENGTH_LONG).show();
+
+                    userItem currentItem = itemUserList.get(position);
+
+                    Intent intent = new Intent(DetailsActivity.this, ProductDetailsActivity.class);
+                    productClass productObject = new productClass(currentItem.id, currentItem.name, currentItem.price, currentItem.description, currentItem.department, currentItem.dueDate, currentItem.seller);
+                    intent.putExtra("productObject", productObject);
+                    startActivity(intent);
                 }
             });
             return convertView;
@@ -222,14 +240,43 @@ public class DetailsActivity extends AppCompatActivity {
     }
 
     public class userItem {
+        public String id;
+
         public String name;
         public String price;
+        public String description;
+        public String department;
+        public String dueDate;
+        public String seller;
         public Drawable image;
 
-        public userItem(String name, String price, Drawable image) {
+        public userItem(String id, String name, String price, String description, String department, String dueDate, String seller, Drawable image) {
+            this.id = id;
             this.name = name;
             this.price = price;
+            this.description = description;
+            this.department = department;
+            this.dueDate = dueDate;
+            this.seller = seller;
             this.image = image;
         }
     }
+
+    protected void createProductObject(String id) {
+        // Access to the activity's productName and copy its value into the productName variable
+        String productName = ((TextView)findViewById(R.id.product_name)).getText().toString();
+        // Access to the activity's productPrice and copy its value into the productPrice variable
+        String productPrice = ((TextView)findViewById(R.id.product_price)).getText().toString();
+        // Access to the activity's productDescription and copy its value into the productDescription variable
+        String productDescription = ((TextView)findViewById(R.id.product_description)).getText().toString();
+        // Access to the activity's productDepartment and copy its value into the productDepartment variable
+        String productDepartment = ((TextView)findViewById(R.id.product_department)).getText().toString();
+        // Access to the activity's productDueDate and copy its value into the productDueDate variable
+        String productDueDate = ((TextView)findViewById(R.id.product_due_date)).getText().toString();
+        // Access to the activity's productSeller and copy its value into the productSeller variable
+        String productSeller = ((TextView)findViewById(R.id.product_seller)).getText().toString();
+        // Create the productClass object
+        this.productObject = new productClass(id, productName, productPrice, productDescription, productDepartment, productDueDate, productSeller);
+    }
+
 }
