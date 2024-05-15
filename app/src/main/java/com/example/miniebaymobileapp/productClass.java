@@ -13,9 +13,10 @@ public class productClass implements Serializable {
     private String department;
     private String dueDate;
     private String seller;
+    private String imageUrl;
 
 
-    public productClass(String id, String name, String price, String description, String department, String dueDate, String seller) {
+    public productClass(String id, String name, String price, String description, String department, String dueDate, String seller, String imageUrl) {
         this.id = id;
         this.name = name;
         this.price = price;
@@ -23,14 +24,11 @@ public class productClass implements Serializable {
         this.department = department;
         this.dueDate = dueDate;
         this.seller = seller;
+        this.imageUrl = imageUrl;
 
     }
 
     // Getters
-    public String getId() {
-        return id;
-    }
-
     public String getName() {
         return name;
     }
@@ -53,5 +51,9 @@ public class productClass implements Serializable {
 
     public String getSeller() {
         return seller;
+    }
+
+    public String getImageUrl(){
+        return imageUrl;
     }
 }

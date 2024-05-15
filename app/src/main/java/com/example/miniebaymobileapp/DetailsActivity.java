@@ -57,7 +57,7 @@ public class DetailsActivity extends AppCompatActivity {
 
 
         //Server IP address and port
-        hostAddress = "192.168.0.7:8080";
+        hostAddress = "192.168.0.5:8080";
         itemUserList = new ArrayList<>();
         adapter = new UsersAdapter(this, itemUserList);
         lv = findViewById(R.id.itemList);
@@ -128,7 +128,7 @@ public class DetailsActivity extends AppCompatActivity {
                         String imageURL = "http://" + hostAddress + "/cpen410/imagesjson/" + imagePath;
 
                         Drawable image = LoadImageFromWebOperations(imageURL);
-                        itemUserList.add(new userItem(productId, name, String.valueOf(bid), description, department, dueDate, seller, image));
+                        itemUserList.add(new userItem(productId, name, String.valueOf(bid), description, department, dueDate, seller, image, imageURL));
                     }
                 } catch (final JSONException e) {
                     Log.e(TAG, "Json parsing error: " + e.getMessage());
@@ -230,7 +230,7 @@ public class DetailsActivity extends AppCompatActivity {
                     userItem currentItem = itemUserList.get(position);
 
                     Intent intent = new Intent(DetailsActivity.this, ProductDetailsActivity.class);
-                    productClass productObject = new productClass(currentItem.id, currentItem.name, currentItem.price, currentItem.description, currentItem.department, currentItem.dueDate, currentItem.seller);
+                    productClass productObject = new productClass(currentItem.id, currentItem.name, currentItem.price, currentItem.description, currentItem.department, currentItem.dueDate, currentItem.seller, currentItem.imageUrl);
                     intent.putExtra("productObject", productObject);
                     startActivity(intent);
                 }
@@ -249,8 +249,9 @@ public class DetailsActivity extends AppCompatActivity {
         public String dueDate;
         public String seller;
         public Drawable image;
+        public String imageUrl;
 
-        public userItem(String id, String name, String price, String description, String department, String dueDate, String seller, Drawable image) {
+        public userItem(String id, String name, String price, String description, String department, String dueDate, String seller, Drawable image, String imageUrl) {
             this.id = id;
             this.name = name;
             this.price = price;
@@ -259,6 +260,7 @@ public class DetailsActivity extends AppCompatActivity {
             this.dueDate = dueDate;
             this.seller = seller;
             this.image = image;
+            this.imageUrl = imageUrl;
         }
     }
 
@@ -275,8 +277,11 @@ public class DetailsActivity extends AppCompatActivity {
         String productDueDate = ((TextView)findViewById(R.id.product_due_date)).getText().toString();
         // Access to the activity's productSeller and copy its value into the productSeller variable
         String productSeller = ((TextView)findViewById(R.id.product_seller)).getText().toString();
+
+        String imageUrl = (itemUserList.get(Integer.parseInt(id))).imageUrl;
+
         // Create the productClass object
-        this.productObject = new productClass(id, productName, productPrice, productDescription, productDepartment, productDueDate, productSeller);
+        this.productObject = new productClass(id, productName, productPrice, productDescription, productDepartment, productDueDate, productSeller, imageUrl);
     }
 
 }
