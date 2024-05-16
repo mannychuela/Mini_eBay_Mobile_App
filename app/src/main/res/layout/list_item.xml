@@ -16,6 +16,14 @@
         android:padding="10dp" />
 
     <TextView
+        android:id="@+id/itemDepartment"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/itemPrice"
+        android:layout_alignStart="@+id/itemName"
+        android:text="TextView" />
+
+    <TextView
         android:id="@+id/itemName"
         android:layout_width="172dp"
         android:layout_height="33dp"

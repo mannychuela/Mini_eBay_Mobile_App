@@ -11,38 +11,38 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.Spinner;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.InputStream;
+import java.io.Serializable;
 import java.net.URL;
 import java.util.ArrayList;
-
-import androidx.appcompat.app.AppCompatActivity;
-
-import static android.content.Context.MODE_PRIVATE;
-
+import java.util.Collections;
 
 public class DetailsActivity extends AppCompatActivity {
+
     SharedPreferences prf;
-
-    protected productClass productObject;
-
     private String TAG = DetailsActivity.class.getSimpleName();
     private ListView lv;
-
     private String hostAddress;
     private UsersAdapter adapter;
     private ArrayList<userItem> itemUserList;
+    ArrayList<userItem> initialUserItemList;
+    //protected productClass productObject;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,16 +51,26 @@ public class DetailsActivity extends AppCompatActivity {
 
         TextView result = findViewById(R.id.resultView);
         Button btnLogOut = findViewById(R.id.btnLogOut);
+        EditText searchInput = findViewById(R.id.searchBox);
+        Button searchButton = findViewById(R.id.searchButton);
+        lv = findViewById(R.id.itemName);
+        Button homeButton = findViewById(R.id.homeButton);
+        homeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Fetch the updated list of products from the server
+                itemUserList.clear();
+                new GetItems(DetailsActivity.this).execute();
+            }
+        });
 
         prf = getSharedPreferences("user_details", MODE_PRIVATE);
         result.setText("Hello, " + prf.getString("username", null) + " \n " + prf.getString("sessionValue", null));
 
-
-        //Server IP address and port
         hostAddress = "192.168.0.5:8080";
         itemUserList = new ArrayList<>();
         adapter = new UsersAdapter(this, itemUserList);
-        lv = findViewById(R.id.itemList);
+        lv.setAdapter(adapter);
 
         new GetItems(this).execute();
 
@@ -76,21 +86,39 @@ public class DetailsActivity extends AppCompatActivity {
                 Intent intent = new Intent(DetailsActivity.this, MainActivity.class);
                 startActivity(intent);
             }
+        });
+
+        searchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String query = ((EditText) findViewById(R.id.searchBox)).getText().toString();
+                filterItems(query);
+            }
+        });
+    }
+
+    public void filterItems(String query) {
+        Spinner dropdownList = findViewById(R.id.dropdownList);
+        String selectedDepartment = dropdownList.getSelectedItem().toString();
+
+        ArrayList<userItem> filteredList = new ArrayList<>();
+        for (userItem item : initialUserItemList) {
+            if (item.name.toLowerCase().contains(query.toLowerCase()) &&
+                    (selectedDepartment.equals("All Departments") || item.department.equalsIgnoreCase(selectedDepartment))) {
+                filteredList.add(item);
+            }
         }
-
-
-
-
-        );
+        itemUserList.clear(); // Clear the current list
+        itemUserList.addAll(filteredList); // Add the filtered items to the current list
+        adapter.notifyDataSetChanged();
     }
 
     private class GetItems extends AsyncTask<Void, Void, Void> {
         private Activity activity;
         private ArrayList<String> departmentList;
+
         protected GetItems(Activity activity) {
-
             this.activity = activity;
-
             this.departmentList = new ArrayList<>();
         }
 
@@ -129,6 +157,7 @@ public class DetailsActivity extends AppCompatActivity {
 
                         Drawable image = LoadImageFromWebOperations(imageURL);
                         itemUserList.add(new userItem(productId, name, String.valueOf(bid), description, department, dueDate, seller, image, imageURL));
+                        initialUserItemList = new ArrayList<>(itemUserList);
                     }
                 } catch (final JSONException e) {
                     Log.e(TAG, "Json parsing error: " + e.getMessage());
@@ -153,17 +182,17 @@ public class DetailsActivity extends AppCompatActivity {
                 });
             }
 
-            if (departmentsJsonStr != null){
+            if (departmentsJsonStr != null) {
                 Log.e(TAG, "Raw JSON response: " + departmentsJsonStr);
-                try{
+                try {
                     JSONObject departmentsObj = new JSONObject(departmentsJsonStr);
                     JSONArray departments = departmentsObj.getJSONArray("departments");
-                    for (int i =0; i < departments.length(); i++){
+                    for (int i = 0; i < departments.length(); i++) {
                         JSONObject department = departments.getJSONObject(i);
                         String departmentName = department.getString("Department Name");
                         departmentList.add(departmentName);
                     }
-                }catch (final JSONException e){
+                } catch (final JSONException e) {
                     Log.e(TAG, "Json parsing error: " + e.getMessage());
                     runOnUiThread(new Runnable() {
                         @Override
@@ -180,12 +209,13 @@ public class DetailsActivity extends AppCompatActivity {
 
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
-            lv.setAdapter(adapter);
+            adapter.notifyDataSetChanged();
 
             Spinner dropdownList = findViewById(R.id.dropdownList);
-            ArrayAdapter<String> adapter = new ArrayAdapter<>(activity, android.R.layout.simple_spinner_item, departmentList);
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            dropdownList.setAdapter(adapter);
+            departmentList.add(0, "All Departments");
+            ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(activity, android.R.layout.simple_spinner_item, departmentList);
+            spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            dropdownList.setAdapter(spinnerAdapter);
         }
 
         public Drawable LoadImageFromWebOperations(String url) {
@@ -212,36 +242,38 @@ public class DetailsActivity extends AppCompatActivity {
             }
             TextView itemName = convertView.findViewById(R.id.itemName);
             TextView itemPrice = convertView.findViewById(R.id.itemPrice);
+            TextView itemDepartment = convertView.findViewById(R.id.itemDepartment);
             ImageView itemImage = convertView.findViewById(R.id.imageView);
 
-            itemName.setText(user.name);
-            itemPrice.setText(user.price);
+            itemName.setText("Product Name: " + user.name);
+            itemPrice.setText("Current Bid: $" + user.price);
+            itemDepartment.setText("Department: " + user.department);
             itemImage.setImageDrawable(user.image);
 
             convertView.setTag(position);
             convertView.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onClick(View view) {
-                    int position = (Integer) view.getTag();
-                    Toast.makeText(getApplicationContext(),
-                            "You have selected " + itemUserList.get(position).name,
-                            Toast.LENGTH_LONG).show();
+                public void onClick(View v) {
+                    int position = (Integer) v.getTag();
+                    //userItem currentItem = getItem(position);
+                    //Intent intent = new Intent(DetailsActivity.this, ProductDetailsActivity.class);
+                    //intent.putExtra("item", currentItem);
+                    //startActivity(intent);
 
                     userItem currentItem = itemUserList.get(position);
 
                     Intent intent = new Intent(DetailsActivity.this, ProductDetailsActivity.class);
-                    productClass productObject = new productClass(currentItem.id, currentItem.name, currentItem.price, currentItem.description, currentItem.department, currentItem.dueDate, currentItem.seller, currentItem.imageUrl);
-                    intent.putExtra("productObject", productObject);
+                    intent.putExtra("productId", (Serializable) currentItem.productId);
                     startActivity(intent);
                 }
             });
+
             return convertView;
         }
     }
 
-    public class userItem {
-        public String id;
-
+    public class userItem  {
+        public String productId;
         public String name;
         public String price;
         public String description;
@@ -251,8 +283,9 @@ public class DetailsActivity extends AppCompatActivity {
         public Drawable image;
         public String imageUrl;
 
-        public userItem(String id, String name, String price, String description, String department, String dueDate, String seller, Drawable image, String imageUrl) {
-            this.id = id;
+        public userItem(String productId, String name, String price, String description,
+                        String department, String dueDate, String seller, Drawable image, String imageUrl) {
+            this.productId = productId;
             this.name = name;
             this.price = price;
             this.description = description;
@@ -263,25 +296,6 @@ public class DetailsActivity extends AppCompatActivity {
             this.imageUrl = imageUrl;
         }
     }
-
-    protected void createProductObject(String id) {
-        // Access to the activity's productName and copy its value into the productName variable
-        String productName = ((TextView)findViewById(R.id.product_name)).getText().toString();
-        // Access to the activity's productPrice and copy its value into the productPrice variable
-        String productPrice = ((TextView)findViewById(R.id.product_price)).getText().toString();
-        // Access to the activity's productDescription and copy its value into the productDescription variable
-        String productDescription = ((TextView)findViewById(R.id.product_description)).getText().toString();
-        // Access to the activity's productDepartment and copy its value into the productDepartment variable
-        String productDepartment = ((TextView)findViewById(R.id.product_department)).getText().toString();
-        // Access to the activity's productDueDate and copy its value into the productDueDate variable
-        String productDueDate = ((TextView)findViewById(R.id.product_due_date)).getText().toString();
-        // Access to the activity's productSeller and copy its value into the productSeller variable
-        String productSeller = ((TextView)findViewById(R.id.product_seller)).getText().toString();
-
-        String imageUrl = (itemUserList.get(Integer.parseInt(id))).imageUrl;
-
-        // Create the productClass object
-        this.productObject = new productClass(id, productName, productPrice, productDescription, productDepartment, productDueDate, productSeller, imageUrl);
-    }
-
 }
+
+

@@ -1,11 +1,7 @@
 package com.example.miniebaymobileapp;
 
-import java.io.Serializable;
-import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
 
-public class productClass implements Serializable {
-
+public class Product {
     private String id;
     private String name;
     private String price;
@@ -15,8 +11,7 @@ public class productClass implements Serializable {
     private String seller;
     private String imageUrl;
 
-
-    public productClass(String id, String name, String price, String description, String department, String dueDate, String seller, String imageUrl) {
+    public Product(String id, String name, String price, String description, String department, String dueDate, String seller, String imageUrl) {
         this.id = id;
         this.name = name;
         this.price = price;
@@ -25,10 +20,12 @@ public class productClass implements Serializable {
         this.dueDate = dueDate;
         this.seller = seller;
         this.imageUrl = imageUrl;
-
     }
 
-    // Getters
+    public String getId() {
+        return id;
+    }
+
     public String getName() {
         return name;
     }
@@ -53,7 +50,7 @@ public class productClass implements Serializable {
         return seller;
     }
 
-    public String getImageUrl(){
+    public String getImageUrl() {
         return imageUrl;
     }
 }
