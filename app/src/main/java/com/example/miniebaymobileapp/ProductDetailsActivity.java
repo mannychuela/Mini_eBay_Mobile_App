@@ -53,7 +53,9 @@ public class ProductDetailsActivity extends AppCompatActivity {
 
     private class FetchProductDetails extends AsyncTask<Void, Void, Void> {
         private String TAG = FetchProductDetails.class.getSimpleName();
-        private String hostAddress = "192.168.0.5:8080";
+
+        // Change this to the IP address of your server
+        private String hostAddress = "";
 
         @Override
         protected Void doInBackground(Void... voids) {

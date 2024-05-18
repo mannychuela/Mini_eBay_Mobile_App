@@ -67,7 +67,9 @@ public class DetailsActivity extends AppCompatActivity {
         prf = getSharedPreferences("user_details", MODE_PRIVATE);
         result.setText("Hello, " + prf.getString("username", null) + " \n " + prf.getString("sessionValue", null));
 
-        hostAddress = "192.168.0.5:8080";
+
+        // Change this to the IP address of your server
+        hostAddress = "";
         itemUserList = new ArrayList<>();
         adapter = new UsersAdapter(this, itemUserList);
         lv.setAdapter(adapter);

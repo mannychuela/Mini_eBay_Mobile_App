@@ -23,8 +23,10 @@ public class MainActivity extends AppCompatActivity {
     SharedPreferences pref;
     //Intent for calling other activity
     Intent intent;
+
     //Server IP address and port
-    String hostAddress="192.168.0.5:8080";
+    // Change this to the IP address of your server
+    String hostAddress="";
     //Authentication servlet
     String servletName="sessionServlet";
     //Server default response
